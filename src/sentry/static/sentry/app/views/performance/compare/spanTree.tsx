@@ -2,7 +2,10 @@ import React from 'react';
 import styled from '@emotion/styled';
 
 import {SentryTransactionEvent} from 'app/types';
-import {TreeDepthType} from 'app/components/events/interfaces/spans/types';
+import {
+  TreeDepthType,
+  OrphanTreeDepth,
+} from 'app/components/events/interfaces/spans/types';
 import * as DividerHandlerManager from 'app/components/events/interfaces/spans/dividerHandlerManager';
 
 import {
@@ -12,6 +15,7 @@ import {
   getSpanID,
   boundsGenerator,
   SpanGeneratedBoundsType,
+  isOrphanDiffSpan,
 } from './utils';
 import SpanGroup from './spanGroup';
 
@@ -41,7 +45,7 @@ class SpanTree extends React.Component<Props> {
     generateBounds,
   }: {
     span: Readonly<DiffSpanType>;
-    childSpans: Readonly<SpanChildrenLookupType>;
+    childSpans: SpanChildrenLookupType;
     spanNumber: number;
     treeDepth: number;
     continuingTreeDepths: Array<TreeDepthType>;
@@ -51,16 +55,21 @@ class SpanTree extends React.Component<Props> {
   }): RenderedSpanTree {
     const spanChildren: Array<DiffSpanType> = childSpans?.[getSpanID(span)] ?? [];
 
+    // Mark descendents as being rendered. This is to address potential recursion issues due to malformed data.
+    // For example if a span has a span_id that's identical to its parent_span_id.
+    childSpans = {
+      ...childSpans,
+    };
+    delete childSpans[getSpanID(span)];
+
     type AccType = {
       renderedSpanChildren: Array<JSX.Element>;
       nextSpanNumber: number;
     };
 
-    // TODO: deal with orphan case
-    // const treeDepthEntry = isOrphanSpan(span)
-    //   ? ({type: 'orphan', depth: treeDepth} as OrphanTreeDepth)
-    //   : treeDepth;
-    const treeDepthEntry = treeDepth;
+    const treeDepthEntry = isOrphanDiffSpan(span)
+      ? ({type: 'orphan', depth: treeDepth} as OrphanTreeDepth)
+      : treeDepth;
 
     const treeArr = isLast
       ? continuingTreeDepths
@@ -127,9 +136,6 @@ class SpanTree extends React.Component<Props> {
 
     const {rootSpans, childSpans} = comparisonReport;
 
-    console.log('comparisonReport', comparisonReport);
-    console.log('rootSpans', rootSpans);
-
     const generateBounds = boundsGenerator(rootSpans);
 
     let nextSpanNumber = 1;
@@ -158,8 +164,6 @@ class SpanTree extends React.Component<Props> {
         })}
       </React.Fragment>
     );
-
-    console.log('num of spans', nextSpanNumber - 1);
 
     return {
       spanTree,

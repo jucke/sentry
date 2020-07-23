@@ -15,22 +15,22 @@ import TransactionComparisonContent from './content';
 
 type Props = {
   location: Location;
-  params: Partial<Params>;
+  params: Params;
   organization: Organization;
 };
 
 class TransactionComparisonPage extends React.PureComponent<Props> {
   getEventSlugs() {
-    let {baselineEventSlug, regressionEventSlug} = this.props.params;
+    const {baselineEventSlug, regressionEventSlug} = this.props.params;
 
-    baselineEventSlug =
+    const validatedBaselineEventSlug =
       typeof baselineEventSlug === 'string' ? baselineEventSlug.trim() : undefined;
-    regressionEventSlug =
+    const validatedRegressionEventSlug =
       typeof regressionEventSlug === 'string' ? regressionEventSlug.trim() : undefined;
 
     return {
-      baselineEventSlug,
-      regressionEventSlug,
+      baselineEventSlug: validatedBaselineEventSlug,
+      regressionEventSlug: validatedRegressionEventSlug,
     };
   }
 
@@ -72,8 +72,13 @@ class TransactionComparisonPage extends React.PureComponent<Props> {
           return null;
         }
 
+        const {organization, location, params} = this.props;
+
         return (
           <TransactionComparisonContent
+            organization={organization}
+            location={location}
+            params={params}
             baselineEvent={baselineEventResults.event}
             regressionEvent={regressionEventResults.event}
           />
@@ -93,7 +98,6 @@ class TransactionComparisonPage extends React.PureComponent<Props> {
       typeof baselineEventSlug === 'string' &&
       typeof regressionEventSlug === 'string'
     ) {
-      // TODO: fix translation
       const title = `Comparing ${baselineEventSlug} to ${regressionEventSlug}`;
 
       return [title, t('Performance')].join(' - ');

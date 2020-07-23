@@ -40,6 +40,7 @@ import {
   getSpanDuration,
   generateCSSWidth,
 } from './utils';
+import {SpanBarRectangle} from './styles';
 import SpanDetail from './spanDetail';
 
 type Props = {
@@ -374,7 +375,6 @@ class SpanBar extends React.Component<Props, State> {
         return <ComparisonReportLabelContainer>{label}</ComparisonReportLabelContainer>;
       }
       case 'baseline': {
-        // TODO: need to flesh this out.
         return (
           <ComparisonReportLabelContainer>
             removed from baseline
@@ -401,7 +401,10 @@ class SpanBar extends React.Component<Props, State> {
     dividerHandlerChildrenProps: DividerHandlerManager.DividerHandlerManagerChildrenProps
   ) {
     const {dividerPosition, addGhostDividerLineRef} = dividerHandlerChildrenProps;
-    const {spanNumber} = this.props;
+    const {spanNumber, span} = this.props;
+
+    const isMatched = span.comparisonResult === 'matched';
+    const hideSpanBarColumn = this.state.showDetail && isMatched;
 
     const spanBarStyles = this.getSpanBarStyles();
 
@@ -415,6 +418,7 @@ class SpanBar extends React.Component<Props, State> {
           position: 'absolute',
           top: '4px',
           height: '16px',
+          display: hideSpanBarColumn ? 'none' : 'block',
         }}
       />
     ) : null;
@@ -453,6 +457,7 @@ class SpanBar extends React.Component<Props, State> {
               position: 'absolute',
               top: '4px',
               height: '16px',
+              display: hideSpanBarColumn ? 'none' : 'block',
             }}
           />
           {foregroundSpanBar}
@@ -495,7 +500,9 @@ class SpanBar extends React.Component<Props, State> {
       return null;
     }
 
-    return <SpanDetail span={this.props.span} />;
+    const {span, generateBounds} = this.props;
+
+    return <SpanDetail span={this.props.span} bounds={generateBounds(span)} />;
   }
 
   render() {
@@ -523,13 +530,7 @@ const getHatchPattern = ({spanBarHatch}) => {
   return null;
 };
 
-const ComparisonSpanBarRectangle = styled('div')`
-  position: relative;
-  height: 100%;
-  min-width: 1px;
-  user-select: none;
-  transition: border-color 0.15s ease-in-out;
-  border-right: 1px solid rgba(0, 0, 0, 0);
+const ComparisonSpanBarRectangle = styled(SpanBarRectangle)`
   ${getHatchPattern};
 `;
 

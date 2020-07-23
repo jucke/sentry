@@ -674,7 +674,7 @@ export function isOrphanDiffSpan(diffSpan: DiffSpanType): boolean {
   }
 }
 
-type SpanWidths =
+export type SpanWidths =
   | {
       type: 'WIDTH_PIXEL';
       width: 1;
@@ -687,6 +687,8 @@ type SpanWidths =
 export type SpanGeneratedBoundsType = {
   background: SpanWidths;
   foreground: SpanWidths | undefined;
+  baseline: SpanWidths | undefined;
+  regression: SpanWidths | undefined;
 };
 
 function generateWidth({
@@ -725,32 +727,60 @@ export function boundsGenerator(rootSpans: Array<DiffSpanType>) {
         const baselineDuration = getSpanDuration(span.baselineSpan);
         const regressionDuration = getSpanDuration(span.regressionSpan);
 
+        const baselineWidth = generateWidth({
+          duration: baselineDuration,
+          largestDuration,
+        });
+        const regressionWidth = generateWidth({
+          duration: regressionDuration,
+          largestDuration,
+        });
+
         if (baselineDuration >= regressionDuration) {
           return {
-            background: generateWidth({duration: baselineDuration, largestDuration}),
-            foreground: generateWidth({duration: regressionDuration, largestDuration}),
+            background: baselineWidth,
+            foreground: regressionWidth,
+            baseline: baselineWidth,
+            regression: regressionWidth,
           };
         }
 
         // case: baselineDuration < regressionDuration
-
         return {
-          background: generateWidth({duration: regressionDuration, largestDuration}),
-          foreground: generateWidth({duration: baselineDuration, largestDuration}),
+          background: regressionWidth,
+          foreground: baselineWidth,
+          baseline: baselineWidth,
+          regression: regressionWidth,
         };
       }
       case 'regression': {
         const regressionDuration = getSpanDuration(span.regressionSpan);
+
+        const regressionWidth = generateWidth({
+          duration: regressionDuration,
+          largestDuration,
+        });
+
         return {
-          background: generateWidth({duration: regressionDuration, largestDuration}),
+          background: regressionWidth,
           foreground: undefined,
+          baseline: undefined,
+          regression: regressionWidth,
         };
       }
       case 'baseline': {
         const baselineDuration = getSpanDuration(span.baselineSpan);
+
+        const baselineWidth = generateWidth({
+          duration: baselineDuration,
+          largestDuration,
+        });
+
         return {
-          background: generateWidth({duration: baselineDuration, largestDuration}),
+          background: baselineWidth,
           foreground: undefined,
+          baseline: baselineWidth,
+          regression: undefined,
         };
       }
       default: {
