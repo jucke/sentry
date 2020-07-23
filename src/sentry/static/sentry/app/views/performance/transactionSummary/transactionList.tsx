@@ -152,74 +152,22 @@ class TransactionTable extends React.PureComponent<Props> {
     return (action: Actions, value: React.ReactText) => {
       const {eventView, location} = this.props;
 
-      let nextLocationQuery: Location['query'] = {};
       const searchConditions = tokenizeSearch(eventView.query);
 
       // remove any event.type queries since it is implied to apply to only transactions
-      delete searchConditions['event.type'];
+      searchConditions.removeTag('event.type');
 
       // no need to include transaction as its already in the query params
-      delete searchConditions.transaction;
+      searchConditions.removeTag('transaction');
 
-      switch (action) {
-        case Actions.ADD: {
-          // Remove exclusion if it exists.
-          delete searchConditions[`!${column.name}`];
-          searchConditions[column.name] = [`${value}`];
-
-          nextLocationQuery = {
-            query: stringifyQueryObject(searchConditions),
-          };
-          break;
-        }
-        case Actions.EXCLUDE: {
-          // Remove positive if it exists.
-          delete searchConditions[column.name];
-          // Negations should stack up.
-          const negation = `!${column.name}`;
-          if (!searchConditions.hasOwnProperty(negation)) {
-            searchConditions[negation] = [];
-          }
-          searchConditions[negation].push(`${value}`);
-
-          nextLocationQuery = {
-            query: stringifyQueryObject(searchConditions),
-          };
-
-          break;
-        }
-        case Actions.SHOW_LESS_THAN: {
-          // Remove query token if it already exists
-          delete searchConditions[column.name];
-          searchConditions[column.name] = [`<${value}`];
-
-          nextLocationQuery = {
-            query: stringifyQueryObject(searchConditions),
-          };
-
-          break;
-        }
-        case Actions.SHOW_GREATER_THAN: {
-          // Remove query token if it already exists
-          delete searchConditions[column.name];
-          searchConditions[column.name] = [`>${value}`];
-
-          nextLocationQuery = {
-            query: stringifyQueryObject(searchConditions),
-          };
-
-          break;
-        }
-        default:
-          throw new Error(`Unknown action type. ${action}`);
-      }
+      searchConditions.act(action, column.name, value);
 
       browserHistory.push({
         pathname: location.pathname,
         query: {
           ...location.query,
           cursor: undefined,
-          ...nextLocationQuery,
+          query: stringifyQueryObject(searchConditions),
         },
       });
     };
