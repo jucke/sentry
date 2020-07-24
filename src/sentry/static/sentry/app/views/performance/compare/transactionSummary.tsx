@@ -1,21 +1,29 @@
 import React from 'react';
 import styled from '@emotion/styled';
+import {Location} from 'history';
+import {Params} from 'react-router/lib/Router';
 
 import {t} from 'app/locale';
 import space from 'app/styles/space';
-import {Event} from 'app/types';
+import {Event, Organization} from 'app/types';
+import Link from 'app/components/links/link';
 import {getHumanDuration, parseTrace} from 'app/components/events/interfaces/spans/utils';
 
+import {getTransactionDetailsUrl} from '../utils';
 import {isTransactionEvent} from './utils';
 
 type Props = {
+  organization: Organization;
+  location: Location;
+  params: Params;
   baselineEvent: Event;
   regressionEvent: Event;
 };
 
 class TransactionSummary extends React.Component<Props> {
   render() {
-    const {baselineEvent, regressionEvent} = this.props;
+    const {baselineEvent, regressionEvent, organization, location, params} = this.props;
+    const {baselineEventSlug, regressionEventSlug} = params;
 
     if (!isTransactionEvent(baselineEvent) || !isTransactionEvent(regressionEvent)) {
       // TODO: better error
@@ -39,7 +47,19 @@ class TransactionSummary extends React.Component<Props> {
           <EventRowContent>
             <Content>
               <ContentTitle>{t('Baseline Event')}</ContentTitle>
-              <EventId>{`ID: ${shortEventId(baselineEvent.eventID)}`}</EventId>
+              <EventId>
+                <span>ID: </span>
+                <StyledLink
+                  to={getTransactionDetailsUrl(
+                    organization,
+                    baselineEventSlug.trim(),
+                    baselineEvent.title,
+                    location.query
+                  )}
+                >
+                  {shortEventId(baselineEvent.eventID)}
+                </StyledLink>
+              </EventId>
             </Content>
             <TimeDuration>
               <span>{getHumanDuration(baselineDuration)}</span>
@@ -51,7 +71,19 @@ class TransactionSummary extends React.Component<Props> {
           <EventRowContent>
             <Content>
               <ContentTitle>{t('Regressive Event')}</ContentTitle>
-              <EventId>{`ID: ${shortEventId(regressionEvent.eventID)}`}</EventId>
+              <EventId>
+                <span>ID: </span>
+                <StyledLink
+                  to={getTransactionDetailsUrl(
+                    organization,
+                    regressionEventSlug.trim(),
+                    regressionEvent.title,
+                    location.query
+                  )}
+                >
+                  {shortEventId(regressionEvent.eventID)}
+                </StyledLink>
+              </EventId>
             </Content>
             <TimeDuration>
               <span>{getHumanDuration(regressionDuration)}</span>
@@ -124,6 +156,10 @@ const ContentTitle = styled('div')`
 `;
 
 const EventId = styled('div')`
+  color: ${p => p.theme.gray500};
+`;
+
+const StyledLink = styled(Link)`
   color: ${p => p.theme.gray500};
 `;
 

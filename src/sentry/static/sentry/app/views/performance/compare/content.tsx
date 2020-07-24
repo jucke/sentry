@@ -22,7 +22,7 @@ type Props = {
 
 class TransactionComparisonContent extends React.Component<Props> {
   render() {
-    const {baselineEvent, regressionEvent, organization, location} = this.props;
+    const {baselineEvent, regressionEvent, organization, location, params} = this.props;
 
     const transactionName =
       baselineEvent.title === regressionEvent.title ? baselineEvent.title : undefined;
@@ -41,6 +41,9 @@ class TransactionComparisonContent extends React.Component<Props> {
           </Layout.HeaderContent>
           <Layout.HeaderActions>
             <TransactionSummary
+              organization={organization}
+              location={location}
+              params={params}
               baselineEvent={baselineEvent}
               regressionEvent={regressionEvent}
             />
