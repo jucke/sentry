@@ -34,6 +34,7 @@ import StacktraceInterface from 'app/components/events/interfaces/stacktrace';
 import TemplateInterface from 'app/components/events/interfaces/template';
 import ThreadsInterface from 'app/components/events/interfaces/threads/threads';
 import {DataSection} from 'app/components/events/styles';
+import RelatedEvents from 'app/components/events/relatedEvents';
 import space from 'app/styles/space';
 import withOrganization from 'app/utils/withOrganization';
 
@@ -252,6 +253,7 @@ class EventEntries extends React.Component {
             projectId={project.slug}
           />
         )}
+        <RelatedEvents event={event} organization={organization} location={location} />
       </div>
     );
   }

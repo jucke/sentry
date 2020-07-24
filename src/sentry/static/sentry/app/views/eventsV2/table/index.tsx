@@ -95,12 +95,15 @@ class Table extends React.PureComponent<TableProps, TableState> {
     this.setState({isLoading: true, tableFetchID});
     metric.mark({name: `discover-events-start-${apiPayload.query}`});
 
+    const newURL = `${url}?field=title&field=event.type&field=project&field=trace.span&field=timestamp&sort=-timestamp&per_page=50&query=trace%3Ab0dadcac9e294440ad2c9bf4c464d56f`;
+
+    console.log('here');
     this.props.api.clear();
     this.props.api
-      .requestPromise(url, {
+      .requestPromise(newURL, {
         method: 'GET',
         includeAllArgs: true,
-        query: apiPayload,
+        // query: apiPayload,
       })
       .then(([data, _, jqXHR]) => {
         // We want to measure this metric regardless of whether we use the result
